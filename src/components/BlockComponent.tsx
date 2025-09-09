@@ -105,28 +105,56 @@ const TodoBlockComponent: React.FC<{
   </div>
 )
 
-const EventBlockComponent: React.FC<{ block: EventBlock }> = ({ block }) => (
-  <div>
-    <div className="flex items-center space-x-2">
-      <span className="text-sm font-medium text-blue-600">
-        🕐 {block.startTime}
-      </span>
-      {block.endTime && (
-        <span className="text-sm text-blue-500">
-          - {block.endTime}
-        </span>
+const EventBlockComponent: React.FC<{ block: EventBlock }> = ({ block }) => {
+  const formatDate = (date: Date) => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const dayAfterTomorrow = new Date(today);
+    dayAfterTomorrow.setDate(today.getDate() + 2);
+    
+    if (date.toDateString() === today.toDateString()) {
+      return '오늘';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return '내일';
+    } else if (date.toDateString() === dayAfterTomorrow.toDateString()) {
+      return '모레';
+    } else {
+      return date.toLocaleDateString('ko-KR');
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex items-center space-x-2">
+        {block.startTime ? (
+          <>
+            <span className="text-sm font-medium text-blue-600">
+              🕐 {block.startTime}
+            </span>
+            {block.endTime && (
+              <span className="text-sm text-blue-500">
+                - {block.endTime}
+              </span>
+            )}
+          </>
+        ) : block.date ? (
+          <span className="text-sm font-medium text-blue-600">
+            📅 {formatDate(block.date)}
+          </span>
+        ) : null}
+      </div>
+      <div className="mt-1 text-gray-900">
+        {block.title}
+      </div>
+      {block.location && (
+        <div className="mt-1 text-sm text-gray-600">
+          📍 {block.location}
+        </div>
       )}
     </div>
-    <div className="mt-1 text-gray-900">
-      {block.title}
-    </div>
-    {block.location && (
-      <div className="mt-1 text-sm text-gray-600">
-        📍 {block.location}
-      </div>
-    )}
-  </div>
-)
+  );
+};
 
 const LongMemoBlockComponent: React.FC<{ 
   block: LongMemoBlock
@@ -175,7 +203,7 @@ const BlockEditForm: React.FC<BlockEditFormProps> = ({ block, onSave, onCancel }
   const [text, setText] = useState(block.text)
   const [tags, setTags] = useState(formatTags(block.tags))
   const [startTime, setStartTime] = useState(
-    block.type === 'event' ? (block as EventBlock).startTime : ''
+    block.type === 'event' ? (block as EventBlock).startTime || '' : ''
   )
   const [endTime, setEndTime] = useState(
     block.type === 'event' ? (block as EventBlock).endTime || '' : ''
