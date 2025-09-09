@@ -4,12 +4,14 @@ import { ko } from 'date-fns/locale'
 import { DailyParser } from '../utils/dailyParser'
 import { Block, DailyEntry } from '../types/daily'
 import BlockComponent from './BlockComponent'
+import InlineEditView from './InlineEditView'
 import { useDailyEntries } from '../hooks/useDailyEntries'
 
 const DailyView: React.FC = () => {
   const [inputText, setInputText] = useState('')
   const [parser] = useState(() => new DailyParser())
   const [previewTags, setPreviewTags] = useState<string[]>([])
+  const [viewMode, setViewMode] = useState<'textarea' | 'inline'>('textarea')
   const { 
     entries,
     currentBlocks, 
@@ -72,6 +74,11 @@ const DailyView: React.FC = () => {
     }
   }, [entries, updateBlocks]) // entries가 변경될 때만 실행
 
+  // 인라인 편집 모드일 때는 InlineEditView 렌더링
+  if (viewMode === 'inline') {
+    return <InlineEditView />
+  }
+
   return (
     <div className="space-y-6">
       {/* 헤더 */}
@@ -105,6 +112,32 @@ const DailyView: React.FC = () => {
               초기화
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* 모드 선택 탭 */}
+      <div className="card">
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+          <button
+            onClick={() => setViewMode('textarea')}
+            className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+              viewMode === 'textarea'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            텍스트 영역 모드
+          </button>
+          <button
+            onClick={() => setViewMode('inline')}
+            className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+              viewMode === 'inline'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            인라인 편집 모드
+          </button>
         </div>
       </div>
 
