@@ -84,7 +84,7 @@ export class DailyParser {
    * Todo 블록 파싱
    */
   private parseTodo(line: string): TodoBlock {
-    // `- [x]`, `- [X]`, `[x]`, `[X]` 패턴 처리
+    // `- [x]`, `- [X]`, `[x]`, `[X]`, `[ ]` 패턴 처리
     const isCompleted = line.startsWith('- [x]') || line.startsWith('- [X]') || 
                        line.startsWith('[x]') || line.startsWith('[X]');
     
@@ -94,6 +94,8 @@ export class DailyParser {
       text = line.replace(/^- \[[ xX]\]\s*/, '');
     } else if (line.startsWith('[x]') || line.startsWith('[X]')) {
       text = line.replace(/^\[[ xX]\]\s*/, '');
+    } else if (line.startsWith('[ ]')) {
+      text = line.replace(/^\[\s*\]\s*/, '');
     } else if (line.startsWith('- ')) {
       text = line.replace(/^-\s*/, '');
     }
@@ -251,7 +253,9 @@ export class DailyParser {
     }
 
     const tagMatches = text.match(/#\w+/g);
-    return tagMatches ? tagMatches.map(tag => tag.substring(1)) : [];
+    const tags = tagMatches ? tagMatches.map(tag => tag.substring(1)) : [];
+    console.log('Extracting tags from:', text, 'Found:', tags);
+    return tags;
   }
 
   /**
