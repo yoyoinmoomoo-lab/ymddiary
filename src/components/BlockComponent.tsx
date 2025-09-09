@@ -1,13 +1,16 @@
 import React, { useState } from 'react'
-import { Block, TodoBlock, EventBlock, LongMemoBlock } from '../types/daily'
+import { Block, TodoBlock, EventBlock, LongMemoBlock, BlockType } from '../types/daily'
+import { parseTags, formatTags } from '../utils/tagUtils'
 
 interface BlockComponentProps {
   block: Block
   onToggle?: (blockId: string) => void
+  onUpdate?: (blockId: string, updates: Partial<Block>) => void
 }
 
-const BlockComponent: React.FC<BlockComponentProps> = ({ block, onToggle }) => {
+const BlockComponent: React.FC<BlockComponentProps> = ({ block, onToggle, onUpdate }) => {
   const [isExpanded, setIsExpanded] = useState(!block.collapsed)
+  const [isEditing, setIsEditing] = useState(false)
 
   const renderBlockContent = () => {
     switch (block.type) {
@@ -40,14 +43,36 @@ const BlockComponent: React.FC<BlockComponentProps> = ({ block, onToggle }) => {
     }`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          {renderBlockContent()}
+          {isEditing ? (
+            <BlockEditForm 
+              block={block} 
+              onSave={(updates) => {
+                onUpdate?.(block.id, updates)
+                setIsEditing(false)
+              }}
+              onCancel={() => setIsEditing(false)}
+            />
+          ) : (
+            renderBlockContent()
+          )}
         </div>
-        <div className="ml-3 text-xs text-gray-500">
-          {block.type}
+        <div className="ml-3 flex items-center space-x-2">
+          {!isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="text-xs text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100"
+              title="편집"
+            >
+              ✏️
+            </button>
+          )}
+          <div className="text-xs text-gray-500">
+            {block.type}
+          </div>
         </div>
       </div>
       
-      {block.tags.length > 0 && (
+      {!isEditing && block.tags.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1">
           {block.tags.map((tag) => (
             <span
@@ -137,5 +162,190 @@ const NoteBlockComponent: React.FC<{ block: Block }> = ({ block }) => (
     {block.text}
   </div>
 )
+
+// 블록 편집 폼 컴포넌트
+interface BlockEditFormProps {
+  block: Block
+  onSave: (updates: Partial<Block>) => void
+  onCancel: () => void
+}
+
+const BlockEditForm: React.FC<BlockEditFormProps> = ({ block, onSave, onCancel }) => {
+  const [blockType, setBlockType] = useState<BlockType>(block.type)
+  const [text, setText] = useState(block.text)
+  const [tags, setTags] = useState(formatTags(block.tags))
+  const [startTime, setStartTime] = useState(
+    block.type === 'event' ? (block as EventBlock).startTime : ''
+  )
+  const [endTime, setEndTime] = useState(
+    block.type === 'event' ? (block as EventBlock).endTime || '' : ''
+  )
+  const [title, setTitle] = useState(
+    block.type === 'event' ? (block as EventBlock).title :
+    block.type === 'long_memo' ? (block as LongMemoBlock).title || '' : ''
+  )
+  const [body, setBody] = useState(
+    block.type === 'long_memo' ? (block as LongMemoBlock).body : ''
+  )
+
+  const handleSave = () => {
+    const normalizedTags = parseTags(tags)
+
+    const updates: Partial<Block> = {
+      type: blockType,
+      text,
+      tags: normalizedTags,
+      updatedAt: new Date()
+    }
+
+    // 이벤트 블록인 경우 시간 정보 추가
+    if (blockType === 'event') {
+      Object.assign(updates, {
+        startTime,
+        endTime: endTime || undefined,
+        title: title || text
+      })
+    }
+
+    // 긴 메모 블록인 경우 body 정보 추가
+    if (blockType === 'long_memo') {
+      Object.assign(updates, {
+        title: title || '긴 메모',
+        body: body || text,
+        collapsed: false
+      })
+    }
+
+    onSave(updates)
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* 블록 타입 선택 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          블록 타입
+        </label>
+        <select
+          value={blockType}
+          onChange={(e) => setBlockType(e.target.value as BlockType)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+        >
+          <option value="note">📝 메모</option>
+          <option value="todo">✅ 할 일</option>
+          <option value="important">⚠️ 중요</option>
+          <option value="event">🕐 이벤트</option>
+          <option value="long_memo">📄 긴 메모</option>
+        </select>
+      </div>
+
+      {/* 이벤트 시간 입력 */}
+      {blockType === 'event' && (
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              시작 시간
+            </label>
+            <input
+              type="text"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              placeholder="예: 14:30, 오후 2시"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              종료 시간 (선택)
+            </label>
+            <input
+              type="text"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              placeholder="예: 15:30, 오후 3시"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 제목 입력 (이벤트, 긴 메모) */}
+      {(blockType === 'event' || blockType === 'long_memo') && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            제목
+          </label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="제목을 입력하세요"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+        </div>
+      )}
+
+      {/* 텍스트 입력 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          내용
+        </label>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="내용을 입력하세요"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+          rows={3}
+        />
+      </div>
+
+      {/* 긴 메모 본문 */}
+      {blockType === 'long_memo' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            본문
+          </label>
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder="긴 메모 본문을 입력하세요"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+            rows={5}
+          />
+        </div>
+      )}
+
+      {/* 태그 입력 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          태그
+        </label>
+        <input
+          type="text"
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder="태그를 공백으로 구분하여 입력하세요 (예: #중요 #프로젝트)"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+        />
+      </div>
+
+      {/* 버튼 */}
+      <div className="flex justify-end space-x-2">
+        <button
+          onClick={onCancel}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+        >
+          취소
+        </button>
+        <button
+          onClick={handleSave}
+          className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+        >
+          저장
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export default BlockComponent

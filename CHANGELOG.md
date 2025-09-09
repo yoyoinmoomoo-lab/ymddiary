@@ -61,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Event time parsing for `09:00` / `9:00` normalized to HH:mm format
-- N/A
+    - N/A
 
 ### Removed
 - N/A

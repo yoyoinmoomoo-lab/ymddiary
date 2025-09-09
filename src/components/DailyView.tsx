@@ -14,6 +14,7 @@ const DailyView: React.FC = () => {
     currentBlocks, 
     toggleTodo, 
     updateBlocks, 
+    updateBlock,
     saveEntry, 
     loadEntry 
   } = useDailyEntries()
@@ -137,6 +138,7 @@ const DailyView: React.FC = () => {
                 key={block.id} 
                 block={block} 
                 onToggle={toggleTodo}
+                onUpdate={updateBlock}
               />
             ))}
           </div>
