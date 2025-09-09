@@ -117,11 +117,48 @@ export const useDailyEntries = () => {
     }
   }, [entries])
 
+  const updateBlock = useCallback((blockId: string, updates: Partial<Block>) => {
+    setCurrentBlocks(prevBlocks => {
+      const updatedBlocks = prevBlocks.map(block => 
+        block.id === blockId 
+          ? { ...block, ...updates, updatedAt: new Date() }
+          : block
+      )
+      
+      // 블록 업데이트 시 자동 저장
+      const today = new Date()
+      const entry: DailyEntry = {
+        id: `entry_${today.getTime()}`,
+        date: today,
+        blocks: updatedBlocks,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      
+      setEntries(prevEntries => {
+        const existingIndex = prevEntries.findIndex(e => 
+          e.date.toDateString() === today.toDateString()
+        )
+        
+        if (existingIndex >= 0) {
+          const updated = [...prevEntries]
+          updated[existingIndex] = entry
+          return updated
+        } else {
+          return [...prevEntries, entry]
+        }
+      })
+      
+      return updatedBlocks
+    })
+  }, [])
+
   return {
     entries,
     currentBlocks,
     toggleTodo,
     updateBlocks,
+    updateBlock,
     saveEntry,
     loadEntry
   }

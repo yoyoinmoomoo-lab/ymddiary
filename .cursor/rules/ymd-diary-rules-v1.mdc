@@ -1,0 +1,37 @@
+---
+description: YMD Diary 개발 규칙 (커밋/PR/Issue/CHANGELOG)
+globs:
+alwaysApply: true
+---
+
+# YMD Diary Rules (v1)
+
+## Commit 규칙
+- Conventional Commit 스타일 사용
+- prefix: feat|fix|docs|chore|refactor|test
+- 메시지는 한국어 가능, 의도를 분명히 쓸 것
+
+## Pull Request 규칙
+- 제목: `{feat|fix|docs}(<scope>): <요약>`
+- 본문 필수 항목:
+  - 요약 (핵심 변경 2~4줄)
+  - 관련 이슈: `Closes #번호`, `Refs #번호`
+  - 테스트 체크리스트
+  - 라벨/마일스톤/CHANGELOG 업데이트 필수
+
+## Issue 규칙
+- 제목 prefix: [FEATURE] / [FIX] / [DOCS]
+- Acceptance Criteria를 본문에 포함
+
+## CHANGELOG 규칙
+- 형식: Keep a Changelog + SemVer
+- PR 시 Unreleased에 1~3줄 추가
+- 릴리즈 직전 → 버전 섹션으로 이동
+
+## Daily Parser 입력 규칙
+- todo: `- [ ]` or `[` 시작 시 변환
+- note: 기본 불릿
+- important: `! `
+- event: `@ HH:mm`, `@ 오전/오후`, `@오늘/내일/모레`
+- long_memo: `>` (빈 줄 전까지)
+- 태그: `#태그` 다중 허용, 정규화 저장
