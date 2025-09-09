@@ -61,8 +61,8 @@ export class DailyParser {
       return this.parseLongMemo(line, allLines, currentIndex);
     }
 
-    // Todo 처리 - `[`로 시작하는 경우도 Todo로 처리
-    if (line.startsWith('- [ ]') || line.startsWith('- ') || line.startsWith('[ ]')) {
+    // Todo 처리 - `[ ]` 패턴만 Todo로 처리
+    if (line.startsWith('- [ ]') || line.startsWith('[ ]')) {
       return { block: this.parseTodo(line), nextIndex: currentIndex + 1 };
     }
 
