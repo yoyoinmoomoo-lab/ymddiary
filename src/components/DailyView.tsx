@@ -67,8 +67,9 @@ const DailyView: React.FC = () => {
           placeholder={`예시:
 - [ ] 할 일 #중요
 ! 중요한 메모
-@ 12:00 점심 약속 #일정
-+ 회고
+@ 오후 12시 점심 약속 #일정
+@ 내일 e-ticket 인쇄
+> 회고
 이번 달은 정말 바빴다...
 다음 달 목표는 더 체계적으로 관리하는 것이다.
 
@@ -81,7 +82,9 @@ const DailyView: React.FC = () => {
             <li><code>- [ ]</code> 또는 <code>- </code>: 할 일</li>
             <li><code>!</code>: 중요한 메모</li>
             <li><code>@ 시간</code> 또는 <code>시간</code>: 이벤트/일정</li>
-            <li><code>+</code>: 긴 메모 (다음 빈 줄까지)</li>
+            <li><code>@ 오전/오후 시간</code>: 한국어 시간 (예: @ 오후 12시)</li>
+            <li><code>@ 오늘/내일/모레</code>: 상대 날짜</li>
+            <li><code>{'>'}</code>: 긴 메모 (다음 빈 줄까지)</li>
             <li><code>#태그</code>: 태그 (어디든 사용 가능)</li>
           </ul>
         </div>

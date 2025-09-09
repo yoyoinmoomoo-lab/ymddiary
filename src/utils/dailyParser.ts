@@ -132,6 +132,14 @@ export class DailyParser {
    */
   private parseEvent(line: string): EventBlock {
     const cleanLine = line.replace(/^@\s*/, '');
+    
+    // 한국어 시간/날짜 파싱 시도
+    const koreanTimeMatch = this.parseKoreanTime(cleanLine);
+    if (koreanTimeMatch) {
+      return koreanTimeMatch;
+    }
+    
+    // 기존 숫자 시간 파싱
     const timeMatch = cleanLine.match(/^(\d{1,2}[:시]\d{0,2}[분]?)\s+(.+)/);
     
     if (!timeMatch) {
@@ -194,7 +202,10 @@ export class DailyParser {
    */
   private isEventLine(line: string): boolean {
     // @ 시간 패턴 또는 시간 패턴으로 시작하는지 확인
-    return /^@\s*\d{1,2}[:시]\d{0,2}[분]?/.test(line) || /^\d{1,2}[:시]\d{0,2}[분]?\s+/.test(line);
+    return /^@\s*\d{1,2}[:시]\d{0,2}[분]?/.test(line) || 
+           /^\d{1,2}[:시]\d{0,2}[분]?\s+/.test(line) ||
+           /^@\s*(오전|오후)\s*\d{1,2}시/.test(line) ||
+           /^@\s*(오늘|내일|모레)/.test(line);
   }
 
   /**
@@ -224,6 +235,65 @@ export class DailyParser {
 
     const tagMatches = text.match(/#\w+/g);
     return tagMatches ? tagMatches.map(tag => tag.substring(1)) : [];
+  }
+
+  /**
+   * 한국어 시간/날짜 파싱
+   */
+  private parseKoreanTime(line: string): EventBlock | null {
+    // 오전/오후 시간 파싱: @ 오후 12시 점심
+    const ampmMatch = line.match(/^(오전|오후)\s*(\d{1,2})시(?:\s*(\d{1,2})분)?\s+(.+)/);
+    if (ampmMatch) {
+      const [, period, hour, minute, title] = ampmMatch;
+      const normalizedTime = this.normalizeAmPmTime(period, hour, minute);
+      const tags = this.extractTags(title);
+      
+      return {
+        id: this.generateId(),
+        type: 'event',
+        startTime: normalizedTime,
+        title: title.replace(/#\w+/g, '').trim(),
+        tags,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
+    
+    // 상대 날짜 파싱: @내일 e-ticket 인쇄
+    const relativeDateMatch = line.match(/^(오늘|내일|모레)\s+(.+)/);
+    if (relativeDateMatch) {
+      const [, dateKeyword, title] = relativeDateMatch;
+      const tags = this.extractTags(title);
+      
+      return {
+        id: this.generateId(),
+        type: 'event',
+        startTime: '00:00', // 상대 날짜는 시간을 00:00으로 설정
+        title: title.replace(/#\w+/g, '').trim(),
+        tags,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
+    
+    return null;
+  }
+
+  /**
+   * 오전/오후 시간 정규화
+   */
+  private normalizeAmPmTime(period: string, hour: string, minute?: string): string {
+    let h = parseInt(hour);
+    const m = minute ? parseInt(minute) : 0;
+    
+    // 오후 12시는 12시, 오전 12시는 0시
+    if (period === '오후' && h !== 12) {
+      h += 12;
+    } else if (period === '오전' && h === 12) {
+      h = 0;
+    }
+    
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
   }
 
   /**
