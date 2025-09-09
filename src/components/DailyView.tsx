@@ -10,6 +10,7 @@ const DailyView: React.FC = () => {
   const [inputText, setInputText] = useState('')
   const [parser] = useState(() => new DailyParser())
   const { 
+    entries,
     currentBlocks, 
     toggleTodo, 
     updateBlocks, 
@@ -38,10 +39,18 @@ const DailyView: React.FC = () => {
 
   const today = new Date()
 
-  // 오늘 날짜의 엔트리 로드
+  // 오늘 날짜의 엔트리 로드 (한 번만 실행)
   useEffect(() => {
-    loadEntry(today)
-  }, [today, loadEntry])
+    const entry = entries.find(e => 
+      e.date.toDateString() === today.toDateString()
+    )
+    
+    if (entry) {
+      updateBlocks(entry.blocks)
+    } else {
+      updateBlocks([])
+    }
+  }, [entries, updateBlocks]) // entries가 변경될 때만 실행
 
   return (
     <div className="space-y-6">
