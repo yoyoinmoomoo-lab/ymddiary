@@ -51,13 +51,18 @@ export class DailyParser {
    * 단일 라인을 파싱
    */
   private parseLine(line: string, allLines: string[], currentIndex: number): { block: Block | null; nextIndex: number } {
+    // 빈 줄 처리 - 기본 Note 블록 생성
+    if (!line.trim()) {
+      return { block: this.parseNote(''), nextIndex: currentIndex + 1 };
+    }
+
     // Long Memo 처리
-    if (this.options.enableLongMemo && line.startsWith('+ ')) {
+    if (this.options.enableLongMemo && line.startsWith('> ')) {
       return this.parseLongMemo(line, allLines, currentIndex);
     }
 
-    // Todo 처리
-    if (line.startsWith('- [ ]') || line.startsWith('- ')) {
+    // Todo 처리 - `[`로 시작하는 경우도 Todo로 처리
+    if (line.startsWith('- [ ]') || line.startsWith('- ') || line.startsWith('[ ]')) {
       return { block: this.parseTodo(line), nextIndex: currentIndex + 1 };
     }
 
@@ -79,8 +84,22 @@ export class DailyParser {
    * Todo 블록 파싱
    */
   private parseTodo(line: string): TodoBlock {
-    const isCompleted = line.startsWith('- [x]') || line.startsWith('- [X]');
-    const text = line.replace(/^- \[[ xX]\]\s*/, '').replace(/^-\s*/, '');
+    // `- [x]`, `- [X]`, `[x]`, `[X]`, `[ ]` 패턴 처리
+    const isCompleted = line.startsWith('- [x]') || line.startsWith('- [X]') || 
+                       line.startsWith('[x]') || line.startsWith('[X]');
+    
+    // 텍스트에서 기호 제거
+    let text = line;
+    if (line.startsWith('- [x]') || line.startsWith('- [X]')) {
+      text = line.replace(/^- \[[ xX]\]\s*/, '');
+    } else if (line.startsWith('[x]') || line.startsWith('[X]')) {
+      text = line.replace(/^\[[ xX]\]\s*/, '');
+    } else if (line.startsWith('[ ]')) {
+      text = line.replace(/^\[\s*\]\s*/, '');
+    } else if (line.startsWith('- ')) {
+      text = line.replace(/^-\s*/, '');
+    }
+    
     const tags = this.extractTags(text);
 
     return {
@@ -165,7 +184,7 @@ export class DailyParser {
    * Long Memo 블록 파싱
    */
   private parseLongMemo(line: string, allLines: string[], currentIndex: number): { block: LongMemoBlock; nextIndex: number } {
-    const title = line.replace(/^\+\s*/, '');
+    const title = line.replace(/^>\s*/, '');
     let body = '';
     let nextIndex = currentIndex + 1;
 
@@ -234,7 +253,9 @@ export class DailyParser {
     }
 
     const tagMatches = text.match(/#\w+/g);
-    return tagMatches ? tagMatches.map(tag => tag.substring(1)) : [];
+    const tags = tagMatches ? tagMatches.map(tag => tag.substring(1)) : [];
+    console.log('Extracting tags from:', text, 'Found:', tags);
+    return tags;
   }
 
   /**
