@@ -19,6 +19,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - N/A
 
+## [0.1.1] - 2025-01-27
+
+### Added
+- Korean natural language time parsing: `@ 오전/오후 HH시` and `@ 오늘/내일/모레`
+- Todo checkbox toggle persistence with auto-save
+- Editor default bullet (note) behavior with `[` input conversion to Todo
+- Long Memo input rule unified to `>` only (removed `+` support)
+- In-app help text for input rules
+
+### Changed
+- Event parsing now supports Korean time expressions
+- Todo blocks maintain completion state across page reloads
+- Editor starts with note bullets by default, converts to Todo on `[` input
+- Long Memo blocks use `>` prefix exclusively
+
+### Fixed
+- Infinite re-rendering issue in DailyView component
+- Todo parsing correctly strips `[ ]` prefix from display text
+- Tag extraction working properly for all block types
+- JSX syntax error with `>` character in help text
+
+### Removed
+- `+` prefix support for Long Memo blocks
+
 ## [0.1.0] - 2025-01-27
 
 ### Added
