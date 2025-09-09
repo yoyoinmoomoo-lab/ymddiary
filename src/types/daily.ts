@@ -26,10 +26,11 @@ export interface ImportantBlock extends BaseBlock {
 
 export interface EventBlock extends BaseBlock {
   type: 'event';
-  startTime: string;
+  startTime?: string;
   endTime?: string;
   title: string;
   location?: string;
+  date?: Date; // 상대 날짜용 (내일, 모레 등)
 }
 
 export interface LongMemoBlock extends BaseBlock {

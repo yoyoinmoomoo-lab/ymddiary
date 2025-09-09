@@ -61,8 +61,8 @@ export class DailyParser {
       return this.parseLongMemo(line, allLines, currentIndex);
     }
 
-    // Todo 처리 - `[`로 시작하는 경우도 Todo로 처리
-    if (line.startsWith('- [ ]') || line.startsWith('- ') || line.startsWith('[ ]')) {
+    // Todo 처리 - `[ ]` 패턴만 Todo로 처리
+    if (line.startsWith('- [ ]') || line.startsWith('[ ]')) {
       return { block: this.parseTodo(line), nextIndex: currentIndex + 1 };
     }
 
@@ -286,12 +286,29 @@ export class DailyParser {
       const [, dateKeyword, title] = relativeDateMatch;
       const tags = this.extractTags(title);
       
+      // 상대 날짜 계산
+      const today = new Date();
+      let targetDate = new Date(today);
+      
+      switch (dateKeyword) {
+        case '오늘':
+          // 오늘은 그대로
+          break;
+        case '내일':
+          targetDate.setDate(today.getDate() + 1);
+          break;
+        case '모레':
+          targetDate.setDate(today.getDate() + 2);
+          break;
+      }
+      
       return {
         id: this.generateId(),
         type: 'event',
-        startTime: '00:00', // 상대 날짜는 시간을 00:00으로 설정
+        // startTime은 상대 날짜의 경우 undefined
         title: title.replace(/#\w+/g, '').trim(),
         tags,
+        date: targetDate, // 상대 날짜 저장
         createdAt: new Date(),
         updatedAt: new Date()
       };

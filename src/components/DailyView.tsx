@@ -4,11 +4,14 @@ import { ko } from 'date-fns/locale'
 import { DailyParser } from '../utils/dailyParser'
 import { Block, DailyEntry } from '../types/daily'
 import BlockComponent from './BlockComponent'
+import InlineEditView from './InlineEditView'
 import { useDailyEntries } from '../hooks/useDailyEntries'
 
 const DailyView: React.FC = () => {
   const [inputText, setInputText] = useState('')
   const [parser] = useState(() => new DailyParser())
+  const [previewTags, setPreviewTags] = useState<string[]>([])
+  const [viewMode, setViewMode] = useState<'textarea' | 'inline'>('textarea')
   const { 
     entries,
     currentBlocks, 
@@ -28,8 +31,26 @@ const DailyView: React.FC = () => {
     }
   }
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleParse()
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value
+    setInputText(text)
+    
+    // 실시간 태그 미리보기
+    const tagMatches = text.match(/#\w+/g)
+    const tags = tagMatches ? tagMatches.map(tag => tag.substring(1)) : []
+    setPreviewTags(tags)
+  }
+
   const handleClear = () => {
     setInputText('')
+    setPreviewTags([])
     updateBlocks([])
   }
 
@@ -52,6 +73,11 @@ const DailyView: React.FC = () => {
       updateBlocks([])
     }
   }, [entries, updateBlocks]) // entries가 변경될 때만 실행
+
+  // 인라인 편집 모드일 때는 InlineEditView 렌더링
+  if (viewMode === 'inline') {
+    return <InlineEditView />
+  }
 
   return (
     <div className="space-y-6">
@@ -89,6 +115,32 @@ const DailyView: React.FC = () => {
         </div>
       </div>
 
+      {/* 모드 선택 탭 */}
+      <div className="card">
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+          <button
+            onClick={() => setViewMode('textarea')}
+            className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+              viewMode === 'textarea'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            텍스트 영역 모드
+          </button>
+          <button
+            onClick={() => setViewMode('inline')}
+            className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+              viewMode === 'inline'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            인라인 편집 모드
+          </button>
+        </div>
+      </div>
+
       {/* 입력 영역 */}
       <div className="card">
         <h3 className="text-lg font-medium text-gray-900 mb-4">
@@ -96,7 +148,8 @@ const DailyView: React.FC = () => {
         </h3>
         <textarea
           value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
+          onChange={handleInputChange}
+          onKeyPress={handleKeyPress}
           placeholder={`예시:
 일반 메모 (기본 불릿)
 [ ] 할 일 #중요
@@ -111,6 +164,24 @@ const DailyView: React.FC = () => {
 빈 줄도 불릿으로 처리`}
           className="w-full h-64 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm"
         />
+        
+        {/* 태그 미리보기 */}
+        {previewTags.length > 0 && (
+          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="text-xs text-blue-600 font-medium mb-1">태그 미리보기:</div>
+            <div className="flex flex-wrap gap-1">
+              {previewTags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        
         <div className="mt-2 text-xs text-gray-500">
           <p><strong>지원하는 기호:</strong></p>
           <ul className="list-disc list-inside mt-1 space-y-1">
