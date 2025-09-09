@@ -88,7 +88,9 @@ const DailyView: React.FC = () => {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder={`예시:
-- [ ] 할 일 #중요
+일반 메모 (기본 불릿)
+[ ] 할 일 #중요
+- [ ] 다른 할 일
 ! 중요한 메모
 @ 오후 12시 점심 약속 #일정
 @ 내일 e-ticket 인쇄
@@ -96,13 +98,14 @@ const DailyView: React.FC = () => {
 이번 달은 정말 바빴다...
 다음 달 목표는 더 체계적으로 관리하는 것이다.
 
-일반 메모`}
+빈 줄도 불릿으로 처리`}
           className="w-full h-64 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm"
         />
         <div className="mt-2 text-xs text-gray-500">
           <p><strong>지원하는 기호:</strong></p>
           <ul className="list-disc list-inside mt-1 space-y-1">
-            <li><code>- [ ]</code> 또는 <code>- </code>: 할 일</li>
+            <li><strong>기본</strong>: 일반 텍스트는 불릿(Note) 블록</li>
+            <li><code>[ ]</code> 또는 <code>- [ ]</code>: 할 일</li>
             <li><code>!</code>: 중요한 메모</li>
             <li><code>@ 시간</code> 또는 <code>시간</code>: 이벤트/일정</li>
             <li><code>@ 오전/오후 시간</code>: 한국어 시간 (예: @ 오후 12시)</li>
