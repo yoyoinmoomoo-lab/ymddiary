@@ -3,15 +3,16 @@ import { Block, TodoBlock, EventBlock, LongMemoBlock } from '../types/daily'
 
 interface BlockComponentProps {
   block: Block
+  onToggle?: (blockId: string) => void
 }
 
-const BlockComponent: React.FC<BlockComponentProps> = ({ block }) => {
+const BlockComponent: React.FC<BlockComponentProps> = ({ block, onToggle }) => {
   const [isExpanded, setIsExpanded] = useState(!block.collapsed)
 
   const renderBlockContent = () => {
     switch (block.type) {
       case 'todo':
-        return <TodoBlockComponent block={block as TodoBlock} />
+        return <TodoBlockComponent block={block as TodoBlock} onToggle={onToggle} />
       case 'event':
         return <EventBlockComponent block={block as EventBlock} />
       case 'long_memo':
@@ -62,13 +63,16 @@ const BlockComponent: React.FC<BlockComponentProps> = ({ block }) => {
   )
 }
 
-const TodoBlockComponent: React.FC<{ block: TodoBlock }> = ({ block }) => (
+const TodoBlockComponent: React.FC<{ 
+  block: TodoBlock
+  onToggle?: (blockId: string) => void 
+}> = ({ block, onToggle }) => (
   <div className="flex items-center space-x-2">
     <input
       type="checkbox"
       checked={block.completed}
-      readOnly
-      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+      onChange={() => onToggle?.(block.id)}
+      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 cursor-pointer"
     />
     <span className={`${block.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
       {block.text}

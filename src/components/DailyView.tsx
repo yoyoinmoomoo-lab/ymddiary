@@ -1,18 +1,25 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { DailyParser } from '../utils/dailyParser'
 import { Block, DailyEntry } from '../types/daily'
 import BlockComponent from './BlockComponent'
+import { useDailyEntries } from '../hooks/useDailyEntries'
 
 const DailyView: React.FC = () => {
   const [inputText, setInputText] = useState('')
-  const [blocks, setBlocks] = useState<Block[]>([])
   const [parser] = useState(() => new DailyParser())
+  const { 
+    currentBlocks, 
+    toggleTodo, 
+    updateBlocks, 
+    saveEntry, 
+    loadEntry 
+  } = useDailyEntries()
 
   const handleParse = () => {
     const result = parser.parse(inputText)
-    setBlocks(result.blocks)
+    updateBlocks(result.blocks)
     
     if (result.errors.length > 0) {
       console.warn('Parse errors:', result.errors)
@@ -21,10 +28,20 @@ const DailyView: React.FC = () => {
 
   const handleClear = () => {
     setInputText('')
-    setBlocks([])
+    updateBlocks([])
+  }
+
+  const handleSave = () => {
+    saveEntry(today, currentBlocks)
+    alert('저장되었습니다!')
   }
 
   const today = new Date()
+
+  // 오늘 날짜의 엔트리 로드
+  useEffect(() => {
+    loadEntry(today)
+  }, [today, loadEntry])
 
   return (
     <div className="space-y-6">
@@ -45,6 +62,12 @@ const DailyView: React.FC = () => {
               className="btn-primary"
             >
               파싱
+            </button>
+            <button
+              onClick={handleSave}
+              className="btn-primary"
+            >
+              저장
             </button>
             <button
               onClick={handleClear}
@@ -91,14 +114,18 @@ const DailyView: React.FC = () => {
       </div>
 
       {/* 파싱 결과 */}
-      {blocks.length > 0 && (
+      {currentBlocks.length > 0 && (
         <div className="card">
           <h3 className="text-lg font-medium text-gray-900 mb-4">
-            파싱 결과 ({blocks.length}개 블록)
+            파싱 결과 ({currentBlocks.length}개 블록)
           </h3>
           <div className="space-y-3">
-            {blocks.map((block) => (
-              <BlockComponent key={block.id} block={block} />
+            {currentBlocks.map((block) => (
+              <BlockComponent 
+                key={block.id} 
+                block={block} 
+                onToggle={toggleTodo}
+              />
             ))}
           </div>
         </div>
