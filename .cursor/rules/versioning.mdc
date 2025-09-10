@@ -1,0 +1,31 @@
+# YMD Diary – 버전 관리 방침 (v0.2.0 이후)
+
+## 1. 버전 규칙
+- **Semantic Versioning (SemVer) 기본 준수**: `MAJOR.MINOR.PATCH`
+- **MAJOR**: 큰 구조 변경 (예: 데이터 모델 변경)
+- **MINOR**: 새로운 기능 추가 (예: 인라인 편집 UI)
+- **PATCH**: 버그 수정, 사소한 개선
+
+## 2. 현재 버전 기준
+- **package.json**: v0.2.0으로 bump (버그픽스 + 인라인 편집 초기버전 포함)
+- **CHANGELOG**: v0.2.0부터 기록 시작
+- **v0.1.1은 스킵** (히스토리상 기록만 존재, 실제 릴리즈 없음)
+
+## 3. milestone & release
+- **개발은 milestone 단위로 관리**
+- **v0.2.0 milestone** → 인라인 편집 안정화 + 주요 버그 수정
+- **milestone 완료 시 release 태그 생성**
+- **중간 버그 수정/개선은 v0.2.0 milestone 안에서 계속 누적**
+
+## 4. 운영 규칙
+- **PR merge** → 곧바로 main에 반영
+- **release는 milestone 완료 시점에서만 진행**
+- **리드(사용자)는 제품 기준으로 피드백만 제공**
+- **cursor는 Git/GitHub 관리(버전 bump, 태그, 충돌 해결 등) 담당**
+
+## 5. 버전 업 시 체크리스트
+- [ ] package.json 버전 업데이트
+- [ ] CHANGELOG.md에 변경사항 기록
+- [ ] Git 태그 생성 (v0.2.0)
+- [ ] GitHub Release 생성
+- [ ] 다음 milestone 계획 수립

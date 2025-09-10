@@ -1,6 +1,6 @@
 {
   "name": "ymd-diary",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Digital diary combining Daily / Weekly / Monthly / Yearly views with tag-based navigation.",
   "main": "src/index.js",
   "type": "module",
