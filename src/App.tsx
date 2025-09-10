@@ -1,5 +1,6 @@
 import React from 'react'
 import DailyView from './components/DailyView'
+import VersionInfo from './components/VersionInfo'
 
 function App() {
   return (
@@ -16,6 +17,9 @@ function App() {
       <main className="max-w-4xl mx-auto px-4 py-8">
         <DailyView />
       </main>
+      
+      {/* 버전 정보 */}
+      <VersionInfo />
     </div>
   )
 }
